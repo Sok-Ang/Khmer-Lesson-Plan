@@ -503,7 +503,8 @@ setDockH();
 
 function tabs(){
   const t=L();
-  document.getElementById('sess').innerHTML=`<button data-s="m">${t.sessM}</button><button data-s="a">${t.sessA}</button>`;
+  const withTime=s=>esc(s).replace(/ \((.+)\)$/,' <span class="sess-time">($1)</span>');
+  document.getElementById('sess').innerHTML=`<button data-s="m">${withTime(t.sessM)}</button><button data-s="a">${withTime(t.sessA)}</button>`;
   document.getElementById('days').innerHTML=DAYS.map((d,i)=>`<button data-i="${i}">${lang==='en'?d[2]:d[1]}<span class="tick" aria-hidden="true">✓</span></button>`).join('');
 }
 // Registered once: only the buttons' innerHTML is rebuilt, the containers persist.

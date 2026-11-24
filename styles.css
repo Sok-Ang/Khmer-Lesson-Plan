@@ -79,7 +79,7 @@ select.week-sel{
   border-radius:10px;padding:8px 12px;min-height:54px;flex:1 1 100%;width:100%;min-width:0
 }
 .card .row{margin:10px auto 0}
-.week-nav button{flex:1 1 160px}
+.week-nav button{flex:1 1 0;min-width:0;padding:6px 8px}
 .legend{max-width:820px;margin:-4px auto 8px;padding:0 12px;text-align:center;color:var(--mut);font-size:max(16px,.8em)}
 #plannerBar .row button{flex:1 1 150px}
 .hol-sum{color:var(--warn);font-weight:700}
@@ -279,6 +279,12 @@ details.more summary::-webkit-details-marker{display:none}
   .sess-row{gap:6px;margin-bottom:6px}
   .sess-row button,.days-row button{min-height:46px;border-width:2px}
   .days-row{gap:4px}
+}
+/* very narrow phones: drop the clock times from the session buttons so they stay one line */
+@media (max-width:440px){
+  .sess-time{display:none}
+}
+@media (max-width:640px){
   .dock{padding-top:6px}
   .dock button{min-height:52px}
   .sheet{padding:14px 12px}
