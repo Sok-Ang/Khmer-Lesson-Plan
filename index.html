@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!--
+  Khmer Lesson Plan Web App (ផែនការមេរៀនភាសាខ្មែរ)
+  Single-file HTML app designed for teachers on phones, tablets, and computers.
+  Features:
+    - Automatic Khmer Lunar Calendar (ចន្ទគតិ) & Gregorian Calendar auto-fill for the chosen week
+    - Bilingual UI toggle (Khmer / English) for buttons & navigation while keeping the paper sheet in Khmer
+    - High-contrast, large-text senior-friendly design with Text Size +/- always at the top
+    - Direct A4 PDF export (single page or all 10 pages) and clean A4 print layout
+    - Auto-save in browser storage, backup/restore, Morning <-> Afternoon copy, and 1-minute Undo
+    - Week history, weekly template, and Cambodian public-holiday markers
+  Note: the Battambang font and the PDF tools are loaded from the internet.
+-->
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ផែនការមេរៀនភាសាខ្មែរ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap">
+
+<!-- PDF Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<!-- Text size & language: always at the very top, easy to find -->
+<div class="tools">
+  <button class="tool" id="fminus" type="button">អក្សរ −</button>
+  <button class="tool" id="fplus" type="button">អក្សរ +</button>
+  <button class="tool" id="langBtn" type="button">🌐 English</button>
+</div>
+
+<!-- Sticky Top Bar: only Session + Day (kept short so the lesson sheet has room) -->
+<div class="bar">
+  <div class="sess-row" id="sess"></div>
+  <div class="days-row" id="days"></div>
+</div>
+
+<!-- First-Time 3-Step Guide -->
+<div class="card guide" id="guide" style="display:none;margin-top:12px">
+  <b id="guideTitle">របៀបប្រើ មាន ៣ ជំហានសាមញ្ញ</b>
+  <ol id="guideList"></ol>
+  <button class="solid sm" id="guideOk">✓ យល់ហើយ</button>
+</div>
+
+<!-- Main Actions: Download PDF & Print -->
+<div class="actions">
+  <button class="solid" id="pdfOne">📥 ទាញយក PDF</button>
+  <button id="p1">🖨️ បោះពុម្ព</button>
+</div>
+
+<!-- Floating Undo / Notification Banner (always visible, just above the bottom bar) -->
+<div class="undo-bar" id="undoBar" role="status" aria-live="polite">
+  <span id="undoMsg"></span>
+  <div style="display:flex;gap:8px">
+    <button class="sm solid" id="undoBtn">↩ ត្រឡប់ក្រោយ</button>
+    <button class="sm" id="closeMsgBtn" style="display:none">បិទ</button>
+  </div>
+</div>
+
+<!-- ONE place to choose the week (dates auto-fill) -->
+<div class="card">
+  <label class="lbl" for="monDate" id="monLbl"></label>
+  <div class="date-pick-row">
+    <input type="date" id="monDate">
+    <button class="sm" id="todayWeekBtn" type="button">📅 សប្តាហ៍នេះ</button>
+  </div>
+  <div class="row week-nav">
+    <button id="wkPrev" type="button">◀ សប្តាហ៍មុន</button>
+    <button id="wkNext" type="button">សប្តាហ៍បន្ទាប់ ▶</button>
+  </div>
+  <p class="note hol-sum" id="holSummary" role="status"></p>
+  <p class="note" id="monNote"></p>
+</div>
+
+<!-- Active Sheet Indicator + legend for the marks on the day buttons -->
+<div class="where" id="where" aria-live="polite"></div>
+<p class="legend" id="legend"></p>
+
+<!-- 10 Lesson Plan Sheets (5 Morning + 5 Afternoon) -->
+<div class="wrap" id="sheets"></div>
+
+<!-- Collapsible "More Options" -->
+<details class="more">
+  <summary id="moreSum">⚙️ ជម្រើសបន្ថែម</summary>
+
+  <div class="sec-title" id="secCopy">ចម្លង និង ទាញយកទាំងអស់</div>
+  <div class="row">
+    <button class="big" id="copyShift"></button>
+    <button class="big" id="pdfAll">📥 ទាញយក PDF ទាំងអស់ (១០ ទំព័រ)</button>
+    <button class="big" id="pa">🖨️ បោះពុម្ពទាំងអស់ (១០ ទំព័រ)</button>
+  </div>
+
+  <div class="sec-title" id="weekLbl">🗂️ សប្តាហ៍ដែលបានរក្សាទុក និង គំរូ</div>
+  <div id="plannerBar">
+    <div class="row"><select class="week-sel" id="weekSel" aria-labelledby="weekLbl"></select></div>
+    <p class="note" id="tplNote"></p>
+    <div class="row">
+      <button class="sm" id="tplSave" type="button"></button>
+      <button class="sm" id="tplApply" type="button"></button>
+      <button class="sm" id="tplClear" type="button"></button>
+      <button class="sm danger" id="wkDel" type="button"></button>
+    </div>
+  </div>
+
+  <div class="sec-title" id="secFile">រក្សាទុកច្បាប់ចម្លង</div>
+  <div class="row">
+    <button class="big" id="backupBtn">💾 រក្សាទុកច្បាប់ចម្លង</button>
+    <button class="big" id="importBtn">📂 បើកច្បាប់ចម្លងដែលបានរក្សាទុក</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="sec-title" id="secHelp">ជំនួយ</div>
+  <div class="row">
+    <button class="big" id="guideShow">❓ បង្ហាញរបៀបប្រើ</button>
+  </div>
+
+  <div class="sec-title" id="secDanger">លុប (ប្រយ័ត្ន)</div>
+  <div class="row">
+    <button class="big danger" id="cl">🗑️ លុបមេរៀនទាំងអស់</button>
+  </div>
+</details>
+
+<!-- Sticky Bottom Dock: Saved status + Previous / Next Day -->
+<div class="dock" id="dock">
+  <div class="dock-status"><span class="badge" id="savedBadge">បានរក្សាទុករួចរាល់ ✓</span></div>
+  <button id="prev">◀ ថ្ងៃមុន</button>
+  <button id="next">ថ្ងៃបន្ទាប់ ▶</button>
+</div>
+
+<!-- Custom Accessible Confirmation Modal -->
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true" aria-labelledby="modalMsg">
+  <div class="modal-box">
+    <p class="modal-msg" id="modalMsg"></p>
+    <div class="modal-btns">
+      <button id="modalCancel">បោះបង់</button>
+      <button class="solid" id="modalOk">យល់ព្រម</button>
+    </div>
+  </div>
+</div>
+
+<!-- Offscreen/Overlay A4 PDF Capture Stage -->
+<div class="pdf-stage" id="pdfStage" aria-hidden="true"></div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
