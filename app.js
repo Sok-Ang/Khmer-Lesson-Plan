@@ -652,7 +652,7 @@ async function downloadAsPDF(allPages){
         }else{
           const div=document.createElement('div');
           div.className=c.className;
-          div.textContent=o.value||'';
+          div.textContent=o.value||'\u00A0';
           c.replaceWith(div);
         }
       });
@@ -680,7 +680,8 @@ async function downloadAsPDF(allPages){
         y:0,
         width:w,
         height:h,
-        windowWidth:Math.max(w,document.documentElement.clientWidth)
+        windowWidth:w,
+        windowHeight:h
       });
       stage.innerHTML='';
 
