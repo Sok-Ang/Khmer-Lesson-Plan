@@ -28,10 +28,11 @@
 </head>
 <body>
 
-<!-- Text size & language: always at the very top, easy to find -->
+<!-- Text size, theme & language: always at the very top, easy to find -->
 <div class="tools">
   <button class="tool" id="fminus" type="button">អក្សរ −</button>
   <button class="tool" id="fplus" type="button">អក្សរ +</button>
+  <button class="tool" id="themeBtn" type="button">🌙 ងងឹត</button>
   <button class="tool" id="langBtn" type="button">🌐 English</button>
 </div>
 
@@ -73,6 +74,9 @@
   <div class="row week-nav">
     <button id="wkPrev" type="button">◀ សប្តាហ៍មុន</button>
     <button id="wkNext" type="button">សប្តាហ៍បន្ទាប់ ▶</button>
+  </div>
+  <div class="row">
+    <button class="sm on" id="khDateBtn" type="button" aria-pressed="true"></button>
   </div>
   <p class="note hol-sum" id="holSummary" role="status"></p>
   <p class="note" id="monNote"></p>

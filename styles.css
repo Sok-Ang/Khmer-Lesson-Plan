@@ -1,8 +1,15 @@
 :root{
   /* Calm, high-contrast light theme for maximum readability */
+  color-scheme:light;
   --bg:#eef2f8;--ui:#ffffff;--ink:#0f1b33;--mut:#2f3a52;--acc:#17479c;--accink:#ffffff;--line:#aebbd3;
   --ok:#0b6b38;--okbg:#e2f5ea;--warn:#a3200f;--warnbg:#fdeceb;--fs:20px;
   box-sizing:border-box;
+}
+:root[data-theme="dark"]{
+  /* High-contrast dark theme for comfortable night reading */
+  color-scheme:dark;
+  --bg:#0f172a;--ui:#1e293b;--ink:#f1f5f9;--mut:#cbd5e1;--acc:#60a5fa;--accink:#0f172a;--line:#334155;
+  --ok:#4ade80;--okbg:#143326;--warn:#f87171;--warnbg:#3b1818;
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 *{box-sizing:inherit;-webkit-tap-highlight-color:transparent}
@@ -34,12 +41,15 @@ button.danger.solid{background:var(--warn);color:#fff}
 button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:4px solid #f0a500;outline-offset:2px}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;margin:8px auto}
 
-/* ---------- Text size & language (top of page, not sticky) ---------- */
+/* ---------- Text size, theme & language (top of page, not sticky) ---------- */
 .tools{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
   max-width:860px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px;
 }
-.tools button.tool{flex:1 1 0;min-width:0;min-height:50px;padding:4px 10px;font-size:max(16px,.85em);border-width:2px}
+.tools button.tool{min-width:0;min-height:50px;padding:4px 8px;font-size:max(16px,.85em);border-width:2px}
+@media (max-width:520px){
+  .tools{grid-template-columns:1fr 1fr}
+}
 
 /* ---------- Sticky Top Header (Session + Day only, kept short) ---------- */
 .bar{
@@ -149,6 +159,9 @@ select.week-sel{
 
 .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;margin-bottom:4px;line-height:1.85}
 .dn{font-size:1.18em;margin-right:2px}
+.gr-dn{display:none}
+.no-kh-date .head-kh,.no-kh-date .gr-pre{display:none!important}
+.no-kh-date .gr-dn{display:inline!important;margin-right:6px}
 .head input{border-bottom:2px dotted #777;min-width:2.2em;width:5.5em;padding:2px 4px;text-align:center}
 .head input.s{width:2.8em}
 .head input.kh{width:4.8em}
@@ -285,7 +298,32 @@ details.more summary::-webkit-details-marker{display:none}
 .pdf-page .hand i{display:block;flex:1;border-bottom:2px dotted #444;height:22px;margin-right:10px}
 .pdf-page .per.pe .body,.pdf-page .per.pe .les,.pdf-page .per.pe .box{display:none!important}
 
-@media screen{.sheet:not(.on):not(.pdf-page){display:none}}
+@media screen{
+  .sheet:not(.on):not(.pdf-page){display:none}
+  :root[data-theme="dark"] .sheet:not(.pdf-page){
+    background:#1e293b;color:#f1f5f9;border-color:#334155;box-shadow:0 2px 12px rgba(0,0,0,.4)
+  }
+  :root[data-theme="dark"] .sheet:not(.pdf-page) input,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) select{color:#93c5fd}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) input::placeholder{color:#94a3b8}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .fl,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .time{color:#cbd5e1}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .head input,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .top input.les,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .ln,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .pl input{border-bottom-color:#64748b}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .head input:focus,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) input:focus{background:#2c2508}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .per{border-top-color:#475569}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .top select{background:#0f172a;border-color:#475569;color:#f1f5f9}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .top select option{background:#0f172a;color:#f1f5f9}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .top input.box{border-color:#f87171;color:#fca5a5}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .pl,
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .pl input{color:#fca5a5}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .hand i{border-bottom-color:#94a3b8}
+  :root[data-theme="dark"] .days-row button.on .tick,
+  :root[data-theme="dark"] .days-row button.on.hol::after{color:var(--accink)}
+}
 
 /* ---------- Mobile Responsive Layout ---------- */
 @media (max-width:640px){
@@ -323,12 +361,15 @@ details.more summary::-webkit-details-marker{display:none}
   .top .fld.f-box{flex:1 1 38%;min-width:105px}
   .top .fld.f-les{flex:1 1 100%}
   .top .fld>select,.top .fld>input.box{width:100%}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .per{background:#0f172a;border-color:#334155;border-top-color:#60a5fa}
+  :root[data-theme="dark"] .sheet:not(.pdf-page) .time{background:#1e3a8a;color:#dbeafe}
 }
 
 /* ---------- Clean A4 Print Layout ---------- */
 @media print{
   @page{size:A4;margin:12mm}
-  body{background:#fff;font-size:15px!important;line-height:1.6;padding:0}
+  :root,:root[data-theme="dark"]{color-scheme:light}
+  body{background:#fff;color:#000;font-size:15px!important;line-height:1.6;padding:0}
   .tools,.legend,.bar,.actions,.card,.where,details.more,.dock,.undo-bar,.pdf-stage,.modal-bg,.ui-only{display:none!important}
   .top .fld{display:contents}
   .wrap{padding:0}

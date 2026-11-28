@@ -109,6 +109,10 @@ const Chhankitek=(()=>{
 const UI={
   km:{
     langBtn:'🌐 English',
+    themeDark:'🌙 ងងឹត',
+    themeLight:'☀️ ភ្លឺ',
+    khDateOn:'🌙 កាលបរិច្ឆេទខ្មែរ៖ បើក ✓',
+    khDateOff:'🌙 កាលបរិច្ឆេទខ្មែរ៖ បិទ',
     saving:'កំពុងរក្សាទុក…',
     saved:'បានរក្សាទុករួចរាល់ ✓',
     storageErr:'មិនអាចរក្សាទុកបានទេ! សូមរក្សាទុកច្បាប់ចម្លង (.json) ដើម្បីការពារមេរៀនរបស់អ្នក។',
@@ -188,6 +192,10 @@ const UI={
   },
   en:{
     langBtn:'🌐 ភាសាខ្មែរ',
+    themeDark:'🌙 Dark',
+    themeLight:'☀️ Light',
+    khDateOn:'🌙 Khmer Date: ON ✓',
+    khDateOff:'🌙 Khmer Date: OFF',
     saving:'Saving…',
     saved:'Saved ✓',
     storageErr:'Could not save! Your browser is blocking storage. Use "Save Backup Copy" to keep your lessons.',
@@ -274,6 +282,8 @@ const SK='khmer-lesson-plan-v2';
 const FK='khmer-lesson-plan-font2';
 const LK='khmer-lesson-plan-lang';
 const GK='khmer-lesson-plan-guide';
+const THK='khmer-lesson-plan-theme';
+const KDK='khmer-lesson-plan-khdate';
 
 function safeGet(k,def){try{return localStorage.getItem(k)||def}catch(e){return def}}
 function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
@@ -428,8 +438,8 @@ function build(){
   let h='';
   for(const s of ['m','a'])for(const [d,n] of DAYS){
     h+=`<section class="sheet" id="sh-${s}-${d}"><div class="ui-only holflag" data-day="${d}" hidden></div>
-    <div class="head"><b class="dn">ថ្ងៃ${n}</b> <input data-k="d:${d}:kh" class="kh" aria-label="ថ្ងៃចន្ទគតិ"> ខែ<input data-k="d:${d}:km" class="m" aria-label="ខែចន្ទគតិ"> ឆ្នាំ<input data-k="d:${d}:kz" class="kz" aria-label="ឆ្នាំ និងស័ក"> ពុទ្ធសករាជ <input data-k="d:${d}:be" class="y" aria-label="ពុទ្ធសករាជ"></div>
-    <div class="head">ត្រូវនឹងថ្ងៃទី<input data-k="d:${d}:gr" class="s" aria-label="ថ្ងៃទីគ្រិស្ត"> ខែ<input data-k="d:${d}:gm" class="m" aria-label="ខែគ្រិស្ត"> ឆ្នាំ<input data-k="d:${d}:gy" class="y" aria-label="ឆ្នាំគ្រិស្ត"></div>`;
+    <div class="head head-kh"><b class="dn">ថ្ងៃ${n}</b> <input data-k="d:${d}:kh" class="kh" aria-label="ថ្ងៃចន្ទគតិ"> ខែ<input data-k="d:${d}:km" class="m" aria-label="ខែចន្ទគតិ"> ឆ្នាំ<input data-k="d:${d}:kz" class="kz" aria-label="ឆ្នាំ និងស័ក"> ពុទ្ធសករាជ <input data-k="d:${d}:be" class="y" aria-label="ពុទ្ធសករាជ"></div>
+    <div class="head head-gr"><b class="dn gr-dn">ថ្ងៃ${n}</b><span class="gr-pre">ត្រូវនឹង</span>ថ្ងៃទី<input data-k="d:${d}:gr" class="s" aria-label="ថ្ងៃទីគ្រិស្ត"> ខែ<input data-k="d:${d}:gm" class="m" aria-label="ខែគ្រិស្ត"> ឆ្នាំ<input data-k="d:${d}:gy" class="y" aria-label="ឆ្នាំគ្រិស្ត"></div>`;
     PLAN[s][d].split('').forEach((c,i)=>{
       const k=`${s}:${d}:${i}`;
       h+=`<div class="per"${i===0?' data-first="1"':''}><span class="time">${TIMES[s][i]}</span><div class="main"><div class="top">
@@ -492,6 +502,7 @@ function applyLanguageUI(){
   tabs();
   show({scroll:false}); // switching language must not jump the page to the top
   renderPlannerBar();
+  updateToggleLabels();
 }
 
 document.getElementById('langBtn').onclick=()=>{
@@ -553,7 +564,7 @@ if(window.ResizeObserver)new ResizeObserver(setDockH).observe(dockEl);
 window.addEventListener('resize',setDockH);
 
 /* =====================================================================
-   7. FONT SIZE CONTROLS
+   7. FONT SIZE, THEME (LIGHT/DARK) & KHMER DATE TOGGLE
    ===================================================================== */
 let fontSize=Math.min(28,Math.max(16,parseInt(safeGet(FK,'20'),10)||20));
 function applyFont(){
@@ -563,6 +574,38 @@ function applyFont(){
 document.getElementById('fminus').onclick=()=>{fontSize=Math.max(16,fontSize-2);applyFont()};
 document.getElementById('fplus').onclick=()=>{fontSize=Math.min(28,fontSize+2);applyFont()};
 applyFont();
+
+let theme=safeGet(THK,'light')==='dark'?'dark':'light';
+let showKhDate=safeGet(KDK,'1')!=='0';
+function updateToggleLabels(){
+  const t=L();
+  const tb=document.getElementById('themeBtn');
+  if(tb){
+    tb.textContent=theme==='dark'?t.themeLight:t.themeDark;
+    tb.setAttribute('aria-pressed',theme==='dark');
+  }
+  const kb=document.getElementById('khDateBtn');
+  if(kb){
+    kb.textContent=showKhDate?t.khDateOn:t.khDateOff;
+    kb.classList.toggle('on',showKhDate);
+    kb.setAttribute('aria-pressed',showKhDate);
+  }
+}
+function applyTheme(){
+  if(theme==='dark')document.documentElement.dataset.theme='dark';
+  else delete document.documentElement.dataset.theme;
+  safeSet(THK,theme);
+  updateToggleLabels();
+}
+function applyKhDate(){
+  document.body.classList.toggle('no-kh-date',!showKhDate);
+  safeSet(KDK,showKhDate?'1':'0');
+  updateToggleLabels();
+}
+document.getElementById('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';applyTheme()};
+document.getElementById('khDateBtn').onclick=()=>{showKhDate=!showKhDate;applyKhDate()};
+applyTheme();
+applyKhDate();
 
 /* =====================================================================
    8. AUTOMATIC KHMER LUNAR + GREGORIAN DATE FILLING
@@ -636,7 +679,7 @@ async function downloadAsPDF(allPages){
     for(let idx=0;idx<targets.length;idx++){
       showNotice(L().pdfProg(idx+1,targets.length),true);
       const clone=targets[idx].cloneNode(true);
-      clone.className='sheet on pdf-page';
+      clone.className='sheet on pdf-page'+(showKhDate?'':' no-kh-date');
       clone.removeAttribute('id');
 
       // Replace inputs/selects with static text divs for crisp Khmer rendering
