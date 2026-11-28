@@ -24,9 +24,31 @@ const TIMES={
   a:['1:00 – 1:40','1:50 – 2:30','2:40 – 3:20','3:30 – 4:10','4:20 – 5:00']
 };
 
-const PLAN={
-  m:{mon:'pkkmk',tue:'kkmms',wed:'pkkms',fri:'kkkms',sat:'kkmms'},
-  a:{mon:'kkmkp',tue:'kkmms',wed:'kkmsp',fri:'skkmk',sat:'kkmmk'}
+const GRADES={
+  '1':{
+    m:{mon:['p','k','k','m','k'],tue:['k','k','m','m','s'],wed:['p','k','m','k','s'],fri:['k','k','k','m','s'],sat:['k','k','m','m','k']},
+    a:{mon:['k','k','k','m','p'],tue:['k','k','m','m','s'],wed:['k','k','m','s','p'],fri:['s','k','k','m','k'],sat:['k','k','m','m','k']}
+  },
+  '2':{
+    m:{mon:['p','k','k','m','k'],tue:['k','k','m','m','s'],wed:['p','k','m','k','s'],fri:['k','k','k','m','s'],sat:['k','k','m','m','k']},
+    a:{mon:['k','k','k','m','p'],tue:['k','k','m','m','s'],wed:['k','k','m','s','p'],fri:['s','k','k','m','k'],sat:['k','k','m','m','k']}
+  },
+  '3':{
+    m:{mon:['p','k','k','m','k'],tue:['k','k','m','m','s'],wed:['p','k','m','k','s'],fri:['k','k','k','m','s'],sat:['k','k','m','m','k']},
+    a:{mon:['k','k','m','k','p'],tue:['k','k','m','m','s'],wed:['k','k','m','s','p'],fri:['s','k','k','m','k'],sat:['k','k','m','m','k']}
+  },
+  '4':{
+    m:{mon:['k','k','m','ss','ss'],tue:['p','k','k','m','sc'],wed:['k','k','m','ss','sc'],fri:['p','k','k','m','ss'],sat:['sc','k','k','m','m']},
+    a:{mon:['k','k','m','ss','ss'],tue:['sc','k','k','m','p'],wed:['k','k','m','ss','sc'],fri:['k','k','m','ss','p'],sat:['k','k','m','m','sc']}
+  },
+  '5':{
+    m:{mon:['k','k','m','ss','ss'],tue:['p','k','k','m','sc'],wed:['k','k','m','ss','sc'],fri:['p','k','k','m','ss'],sat:['sc','k','k','m','m']},
+    a:{mon:['k','k','m','ss','ss'],tue:['sc','k','k','m','p'],wed:['k','k','m','ss','sc'],fri:['k','k','m','ss','p'],sat:['k','k','m','m','sc']}
+  },
+  '6':{
+    m:{mon:['k','k','m','ss','ss'],tue:['p','k','k','m','sc'],wed:['k','k','m','ss','sc'],fri:['p','k','k','m','ss'],sat:['sc','k','k','m','m']},
+    a:{mon:['k','k','m','ss','ss'],tue:['sc','k','m','k','p'],wed:['k','k','m','ss','sc'],fri:['k','k','m','ss','p'],sat:['k','k','m','m','sc']}
+  }
 };
 
 const KH_MONTHS=['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
@@ -115,6 +137,9 @@ const UI={
     themeLight:'☀️ ភ្លឺ',
     khDateOn:'📅 បំពេញកាលបរិច្ឆេទស្វ័យប្រវត្តិ៖ បើក ✓',
     khDateOff:'📅 បំពេញកាលបរិច្ឆេទស្វ័យប្រវត្តិ៖ បិទ',
+    gradeLbl:'🏫 ថ្នាក់',
+    gradeOpt:g=>`ថ្នាក់ទី ${toKhNum(g)}`,
+    gradeApplied:g=>`បានប្តូរមុខវិជ្ជាទៅថ្នាក់ទី ${toKhNum(g)} រួចរាល់។`,
     saving:'កំពុងរក្សាទុក…',
     saved:'បានរក្សាទុករួចរាល់ ✓',
     storageErr:'មិនអាចរក្សាទុកបានទេ! សូមរក្សាទុកច្បាប់ចម្លង (.json) ដើម្បីការពារមេរៀនរបស់អ្នក។',
@@ -198,6 +223,9 @@ const UI={
     themeLight:'☀️ Light',
     khDateOn:'📅 Auto-Fill Dates: ON ✓',
     khDateOff:'📅 Auto-Fill Dates: OFF',
+    gradeLbl:'🏫 Grade',
+    gradeOpt:g=>`Grade ${g}`,
+    gradeApplied:g=>`Updated subjects to Grade ${g}.`,
     saving:'Saving…',
     saved:'Saved ✓',
     storageErr:'Could not save! Your browser is blocking storage. Use "Save Backup Copy" to keep your lessons.',
@@ -286,6 +314,7 @@ const LK='khmer-lesson-plan-lang';
 const GK='khmer-lesson-plan-guide';
 const THK='khmer-lesson-plan-theme';
 const KDK='khmer-lesson-plan-khdate';
+const GRK='khmer-lesson-plan-grade';
 
 function safeGet(k,def){try{return localStorage.getItem(k)||def}catch(e){return def}}
 function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
@@ -433,16 +462,20 @@ function askModal(message,danger=false){
 
 let ses='m',di=0;
 
+let grade=GRADES[safeGet(GRK,'1')]?safeGet(GRK,'1'):'1';
+const gradePlan=()=>GRADES[grade];
+
 /* =====================================================================
    5. BUILD THE 10 KHMER LESSON SHEETS
    ===================================================================== */
 function build(){
   let h='';
+  const plan=gradePlan();
   for(const s of ['m','a'])for(const [d,n] of DAYS){
     h+=`<section class="sheet" id="sh-${s}-${d}"><div class="ui-only holflag" data-day="${d}" hidden></div>
     <div class="head"><b class="dn">ថ្ងៃ${n}</b> <input data-k="d:${d}:kh" class="kh" aria-label="ថ្ងៃចន្ទគតិ"> ខែ<input data-k="d:${d}:km" class="m" aria-label="ខែចន្ទគតិ"> ឆ្នាំ<input data-k="d:${d}:kz" class="kz" aria-label="ឆ្នាំ និងស័ក"> ពុទ្ធសករាជ <input data-k="d:${d}:be" class="y" aria-label="ពុទ្ធសករាជ"></div>
     <div class="head">ត្រូវនឹងថ្ងៃទី<input data-k="d:${d}:gr" class="s" aria-label="ថ្ងៃទីគ្រិស្ត"> ខែ<input data-k="d:${d}:gm" class="m" aria-label="ខែគ្រិស្ត"> ឆ្នាំ<input data-k="d:${d}:gy" class="y" aria-label="ឆ្នាំគ្រិស្ត"></div>`;
-    PLAN[s][d].split('').forEach((c,i)=>{
+    plan[s][d].forEach((c,i)=>{
       const k=`${s}:${d}:${i}`;
       h+=`<div class="per"><span class="time">${TIMES[s][i]}</span><div class="main"><div class="top">
       <div class="fld f-subj"><span class="fl ui-only">មុខវិជ្ជា</span><select data-k="${k}:subj" data-def="${c}" aria-label="មុខវិជ្ជា">${Object.entries(SUBJ).map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select></div>
@@ -487,7 +520,7 @@ const TEXT_BINDINGS=[
   ['backupBtn','backupBtn'],['importBtn','importBtn'],['secDanger','secDanger'],['cl','cl'],
   ['prev','prev'],['next','next'],['undoBtn','undoBtn'],['closeMsgBtn','closeBtn'],
   ['weekLbl','weekLbl'],['wkDel','wkDel'],['tplSave','tplSave'],['tplApply','tplApply'],['tplClear','tplClear'],
-  ['wkPrev','wkPrevLbl'],['wkNext','wkNextLbl'],['tplNote','tplNote'],['legend','legend']
+  ['wkPrev','wkPrevLbl'],['wkNext','wkNextLbl'],['tplNote','tplNote'],['legend','legend'],['gradeLbl','gradeLbl']
 ];
 function applyLanguageUI(){
   const t=L();
@@ -585,6 +618,11 @@ function updateToggleLabels(){
     kb.classList.toggle('on',autoFillDate);
     kb.setAttribute('aria-pressed',autoFillDate);
   }
+  const gs=document.getElementById('gradeSel');
+  if(gs){
+    gs.innerHTML=Object.keys(GRADES).map(g=>`<option value="${g}">${t.gradeOpt(g)}</option>`).join('');
+    gs.value=grade;
+  }
 }
 function applyTheme(){
   if(theme==='dark')document.documentElement.dataset.theme='dark';
@@ -609,6 +647,24 @@ function toggleAutoFillDate(){
 }
 document.getElementById('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';applyTheme()};
 document.getElementById('khDateBtn').onclick=toggleAutoFillDate;
+document.getElementById('gradeSel').onchange=e=>{
+  const g=e.target.value;
+  if(!GRADES[g])return;
+  showUndo(L().gradeApplied(g));
+  grade=g;
+  safeSet(GRK,grade);
+  const plan=gradePlan();
+  for(const s of ['m','a'])for(const [d] of DAYS){
+    plan[s][d].forEach((c,i)=>{
+      const k=`${s}:${d}:${i}:subj`;
+      S[k]=c;
+      const el=document.querySelector(`[data-k="${CSS.escape(k)}"]`);
+      if(el)el.dataset.def=c;
+    });
+  }
+  syncInputsFromState();
+  save();
+};
 applyTheme();
 updateToggleLabels();
 
@@ -852,7 +908,7 @@ document.getElementById('copyShift').onclick=async()=>{
     ['subj','les','box','l2','l3','sk','ss','fis'].forEach(f=>{
       const sk=`${from}:${d}:${i}:${f}`,tk=`${to}:${d}:${i}:${f}`;
       if(has(S,sk))S[tk]=S[sk];
-      else if(f==='subj')S[tk]=PLAN[from][d][i];
+      else if(f==='subj')S[tk]=gradePlan()[from][d][i];
       else delete S[tk];
     });
   }
