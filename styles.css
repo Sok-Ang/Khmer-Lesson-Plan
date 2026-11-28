@@ -159,9 +159,6 @@ select.week-sel{
 
 .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;margin-bottom:4px;line-height:1.85}
 .dn{font-size:1.18em;margin-right:2px}
-.gr-dn{display:none}
-.no-kh-date .head-kh,.no-kh-date .gr-pre{display:none!important}
-.no-kh-date .gr-dn{display:inline!important;margin-right:6px}
 .head input{border-bottom:2px dotted #777;min-width:2.2em;width:5.5em;padding:2px 4px;text-align:center}
 .head input.s{width:2.8em}
 .head input.kh{width:4.8em}

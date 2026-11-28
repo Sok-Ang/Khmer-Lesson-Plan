@@ -111,8 +111,8 @@ const UI={
     langBtn:'🌐 English',
     themeDark:'🌙 ងងឹត',
     themeLight:'☀️ ភ្លឺ',
-    khDateOn:'🌙 កាលបរិច្ឆេទខ្មែរ៖ បើក ✓',
-    khDateOff:'🌙 កាលបរិច្ឆេទខ្មែរ៖ បិទ',
+    khDateOn:'📅 បំពេញកាលបរិច្ឆេទស្វ័យប្រវត្តិ៖ បើក ✓',
+    khDateOff:'📅 បំពេញកាលបរិច្ឆេទស្វ័យប្រវត្តិ៖ បិទ',
     saving:'កំពុងរក្សាទុក…',
     saved:'បានរក្សាទុករួចរាល់ ✓',
     storageErr:'មិនអាចរក្សាទុកបានទេ! សូមរក្សាទុកច្បាប់ចម្លង (.json) ដើម្បីការពារមេរៀនរបស់អ្នក។',
@@ -194,8 +194,8 @@ const UI={
     langBtn:'🌐 ភាសាខ្មែរ',
     themeDark:'🌙 Dark',
     themeLight:'☀️ Light',
-    khDateOn:'🌙 Khmer Date: ON ✓',
-    khDateOff:'🌙 Khmer Date: OFF',
+    khDateOn:'📅 Auto-Fill Dates: ON ✓',
+    khDateOff:'📅 Auto-Fill Dates: OFF',
     saving:'Saving…',
     saved:'Saved ✓',
     storageErr:'Could not save! Your browser is blocking storage. Use "Save Backup Copy" to keep your lessons.',
@@ -438,8 +438,8 @@ function build(){
   let h='';
   for(const s of ['m','a'])for(const [d,n] of DAYS){
     h+=`<section class="sheet" id="sh-${s}-${d}"><div class="ui-only holflag" data-day="${d}" hidden></div>
-    <div class="head head-kh"><b class="dn">ថ្ងៃ${n}</b> <input data-k="d:${d}:kh" class="kh" aria-label="ថ្ងៃចន្ទគតិ"> ខែ<input data-k="d:${d}:km" class="m" aria-label="ខែចន្ទគតិ"> ឆ្នាំ<input data-k="d:${d}:kz" class="kz" aria-label="ឆ្នាំ និងស័ក"> ពុទ្ធសករាជ <input data-k="d:${d}:be" class="y" aria-label="ពុទ្ធសករាជ"></div>
-    <div class="head head-gr"><b class="dn gr-dn">ថ្ងៃ${n}</b><span class="gr-pre">ត្រូវនឹង</span>ថ្ងៃទី<input data-k="d:${d}:gr" class="s" aria-label="ថ្ងៃទីគ្រិស្ត"> ខែ<input data-k="d:${d}:gm" class="m" aria-label="ខែគ្រិស្ត"> ឆ្នាំ<input data-k="d:${d}:gy" class="y" aria-label="ឆ្នាំគ្រិស្ត"></div>`;
+    <div class="head"><b class="dn">ថ្ងៃ${n}</b> <input data-k="d:${d}:kh" class="kh" aria-label="ថ្ងៃចន្ទគតិ"> ខែ<input data-k="d:${d}:km" class="m" aria-label="ខែចន្ទគតិ"> ឆ្នាំ<input data-k="d:${d}:kz" class="kz" aria-label="ឆ្នាំ និងស័ក"> ពុទ្ធសករាជ <input data-k="d:${d}:be" class="y" aria-label="ពុទ្ធសករាជ"></div>
+    <div class="head">ត្រូវនឹងថ្ងៃទី<input data-k="d:${d}:gr" class="s" aria-label="ថ្ងៃទីគ្រិស្ត"> ខែ<input data-k="d:${d}:gm" class="m" aria-label="ខែគ្រិស្ត"> ឆ្នាំ<input data-k="d:${d}:gy" class="y" aria-label="ឆ្នាំគ្រិស្ត"></div>`;
     PLAN[s][d].split('').forEach((c,i)=>{
       const k=`${s}:${d}:${i}`;
       h+=`<div class="per"${i===0?' data-first="1"':''}><span class="time">${TIMES[s][i]}</span><div class="main"><div class="top">
@@ -576,7 +576,8 @@ document.getElementById('fplus').onclick=()=>{fontSize=Math.min(28,fontSize+2);a
 applyFont();
 
 let theme=safeGet(THK,'light')==='dark'?'dark':'light';
-let showKhDate=safeGet(KDK,'1')!=='0';
+let autoFillDate=safeGet(KDK,'1')!=='0';
+const DATE_FIELD_RE=/^d:[a-z]{3}:(kh|km|kz|be|gr|gm|gy)$/;
 function updateToggleLabels(){
   const t=L();
   const tb=document.getElementById('themeBtn');
@@ -586,9 +587,9 @@ function updateToggleLabels(){
   }
   const kb=document.getElementById('khDateBtn');
   if(kb){
-    kb.textContent=showKhDate?t.khDateOn:t.khDateOff;
-    kb.classList.toggle('on',showKhDate);
-    kb.setAttribute('aria-pressed',showKhDate);
+    kb.textContent=autoFillDate?t.khDateOn:t.khDateOff;
+    kb.classList.toggle('on',autoFillDate);
+    kb.setAttribute('aria-pressed',autoFillDate);
   }
 }
 function applyTheme(){
@@ -597,15 +598,25 @@ function applyTheme(){
   safeSet(THK,theme);
   updateToggleLabels();
 }
-function applyKhDate(){
-  document.body.classList.toggle('no-kh-date',!showKhDate);
-  safeSet(KDK,showKhDate?'1':'0');
+function clearWeekDates(){
+  Object.keys(S).forEach(k=>{if(DATE_FIELD_RE.test(k))delete S[k]});
+}
+function toggleAutoFillDate(){
+  autoFillDate=!autoFillDate;
+  safeSet(KDK,autoFillDate?'1':'0');
+  if(autoFillDate){
+    fillWeekFromMonday(parseISO(S['meta:mon'])||upcomingMonday());
+  }else{
+    clearWeekDates();
+  }
+  syncInputsFromState();
+  save();
   updateToggleLabels();
 }
 document.getElementById('themeBtn').onclick=()=>{theme=theme==='dark'?'light':'dark';applyTheme()};
-document.getElementById('khDateBtn').onclick=()=>{showKhDate=!showKhDate;applyKhDate()};
+document.getElementById('khDateBtn').onclick=toggleAutoFillDate;
 applyTheme();
-applyKhDate();
+updateToggleLabels();
 
 /* =====================================================================
    8. AUTOMATIC KHMER LUNAR + GREGORIAN DATE FILLING
@@ -628,18 +639,22 @@ function mondayOf(d){
 const upcomingMonday=()=>mondayOf(new Date());
 
 function fillWeekFromMonday(base){
-  DAYS.forEach(([d])=>{
-    const dt=new Date(base);
-    dt.setDate(base.getDate()+(DAY_OFFSET[d]||0));
-    const kh=Chhankitek(dt);
-    S[`d:${d}:kh`]=kh.khDay;
-    S[`d:${d}:km`]=kh.khMonth;
-    S[`d:${d}:kz`]=kh.khZodiac;
-    S[`d:${d}:be`]=kh.beYear;
-    S[`d:${d}:gr`]=kh.grDay;
-    S[`d:${d}:gm`]=kh.grMonth;
-    S[`d:${d}:gy`]=kh.grYear;
-  });
+  if(autoFillDate){
+    DAYS.forEach(([d])=>{
+      const dt=new Date(base);
+      dt.setDate(base.getDate()+(DAY_OFFSET[d]||0));
+      const kh=Chhankitek(dt);
+      S[`d:${d}:kh`]=kh.khDay;
+      S[`d:${d}:km`]=kh.khMonth;
+      S[`d:${d}:kz`]=kh.khZodiac;
+      S[`d:${d}:be`]=kh.beYear;
+      S[`d:${d}:gr`]=kh.grDay;
+      S[`d:${d}:gm`]=kh.grMonth;
+      S[`d:${d}:gy`]=kh.grYear;
+    });
+  }else{
+    clearWeekDates();
+  }
   S['meta:mon']=isoDate(base);
   monInput.value=S['meta:mon'];
 }
@@ -679,7 +694,7 @@ async function downloadAsPDF(allPages){
     for(let idx=0;idx<targets.length;idx++){
       showNotice(L().pdfProg(idx+1,targets.length),true);
       const clone=targets[idx].cloneNode(true);
-      clone.className='sheet on pdf-page'+(showKhDate?'':' no-kh-date');
+      clone.className='sheet on pdf-page';
       clone.removeAttribute('id');
 
       // Replace inputs/selects with static text divs for crisp Khmer rendering
