@@ -186,7 +186,6 @@ select.week-sel{
 .sheet .ln{display:block;width:100%;border-bottom:2px dotted #777;padding:4px 6px;min-height:52px;margin-top:4px}
 .pl{display:flex;align-items:center;gap:6px;color:#c0141c;font-weight:700;margin-top:4px}
 .sheet .pl input{flex:1;min-width:0;color:#c0141c;border-bottom:2px dotted #777;padding:4px 6px;min-height:52px}
-.per.pe .body,.per.pe .les,.per.pe .box,.per.pe .f-les,.per.pe .f-box{display:none!important}
 
 /* Handwriting row (ស.គ / ស.ស / ហ្វីស) */
 .hand{display:flex;gap:8px;align-items:flex-end;margin-top:6px;font-weight:700}
@@ -293,7 +292,6 @@ details.more summary::-webkit-details-marker{display:none}
 .pdf-page .pl div{display:block;flex:1;min-width:0;color:#c0141c;font-weight:700}
 .pdf-page .hand{display:flex;gap:8px;align-items:flex-end;width:100%;margin-top:8px;font-weight:700;color:#000}
 .pdf-page .hand i{display:block;flex:1;border-bottom:2px dotted #444;height:22px;margin-right:10px}
-.pdf-page .per.pe .body,.pdf-page .per.pe .les,.pdf-page .per.pe .box{display:none!important}
 
 @media screen{
   .sheet:not(.on):not(.pdf-page){display:none}

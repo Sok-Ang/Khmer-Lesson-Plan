@@ -14,7 +14,9 @@ const SUBJ={
   k:'ភាសាខ្មែរ',
   m:'គណិតវិទ្យា',
   p:'អប់រំកាយ',
-  s:'វិទ្យាសាស្ត្រ/សិក្សាសង្គម'
+  s:'វិទ្យាសាស្ត្រ/សិក្សាសង្គម',
+  sc:'វិទ្យាសាស្ត្រ',
+  ss:'សិក្សាសង្គម'
 };
 
 const TIMES={
@@ -442,7 +444,7 @@ function build(){
     <div class="head">ត្រូវនឹងថ្ងៃទី<input data-k="d:${d}:gr" class="s" aria-label="ថ្ងៃទីគ្រិស្ត"> ខែ<input data-k="d:${d}:gm" class="m" aria-label="ខែគ្រិស្ត"> ឆ្នាំ<input data-k="d:${d}:gy" class="y" aria-label="ឆ្នាំគ្រិស្ត"></div>`;
     PLAN[s][d].split('').forEach((c,i)=>{
       const k=`${s}:${d}:${i}`;
-      h+=`<div class="per"${i===0?' data-first="1"':''}><span class="time">${TIMES[s][i]}</span><div class="main"><div class="top">
+      h+=`<div class="per"><span class="time">${TIMES[s][i]}</span><div class="main"><div class="top">
       <div class="fld f-subj"><span class="fl ui-only">មុខវិជ្ជា</span><select data-k="${k}:subj" data-def="${c}" aria-label="មុខវិជ្ជា">${Object.entries(SUBJ).map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select></div>
       <div class="fld f-les"><span class="fl ui-only">មេរៀន</span><input class="les" data-k="${k}:les" aria-label="មេរៀន" placeholder="មេរៀនទី… ចំណងជើង"></div>
       <div class="fld f-box"><span class="fl ui-only">ទំព័រ ឬ ចំណាំ</span><input class="box" data-k="${k}:box" aria-label="ទំព័រ ឬ ចំណាំ" placeholder="ទំព័រទី…"></div></div>
@@ -462,7 +464,6 @@ function syncInputsFromState(){
     el.value=has(S,k)?S[k]:(el.dataset.def||'');
   });
   monInput.value=S['meta:mon']||'';
-  peFix();
 }
 
 function onFieldInput(e){
@@ -472,14 +473,7 @@ function onFieldInput(e){
   if(has(S,k)&&S[k]===el.value)return; // 'input' + 'change' both fire on selects
   S[k]=el.value;
   document.querySelectorAll(`[data-k="${CSS.escape(k)}"]`).forEach(o=>{if(o!==el)o.value=el.value});
-  if(el.tagName==='SELECT')peFix();
   save();
-}
-
-function peFix(){
-  document.querySelectorAll('.per').forEach(p=>{
-    p.classList.toggle('pe',p.querySelector('select').value==='p'&&!p.dataset.first);
-  });
 }
 
 /* =====================================================================
